@@ -78,7 +78,19 @@
 #dialog.narrator #next{opacity:.42}
 </style></head><body><main id="stage"><div id="bg"></div><div id="shade"></div><img id="fullArt"><div id="sprites"></div><div id="dialog"><div id="speaker"></div><div id="line"></div><div id="next">Нажми, чтобы продолжить ▸</div></div><div id="choices"></div><div id="hud"><button id="save">Сохранить</button><button id="load">Загрузить</button><button id="home">Меню</button><span id="chapter"></span></div><div id="phoneWrap"><div id="phoneLayout"><div id="phone"><img id="phoneImg"><div id="phoneScreen"><div id="phoneTitle"><img id="markAvatar" src="assets/mark_avatar.png" alt=""><span>Марк<small>Сообщения</small></span></div><div id="messages"></div><div id="phoneComposer"><span>Сообщение</span><span class="sendArrow">➤</span></div><div id="phoneKeyboard" aria-label="Декоративная клавиатура телефона"><div class="keyrow"><span>й</span><span>ц</span><span>у</span><span>к</span><span>е</span><span>н</span><span>г</span><span>ш</span><span>щ</span><span>з</span><span>х</span></div><div class="keyrow"><span>ф</span><span>ы</span><span>в</span><span>а</span><span>п</span><span>р</span><span>о</span><span>л</span><span>д</span><span>ж</span><span>э</span></div><div class="keyrow"><span>я</span><span>ч</span><span>с</span><span>м</span><span>и</span><span>т</span><span>ь</span><span>б</span><span>ю</span></div><div class="keyrow"><span class="special">123</span><span class="spacekey">пробел</span><span class="special">↵</span></div></div></div></div><div id="phoneSide"><div id="phonePrompt"></div><div id="phoneChoices"></div><div id="phonePreview"><img id="selfiePreview" alt="Селфи героини"><div>Отправить эту фотографию Марку?</div><button id="confirmSelfie">Отправить фото</button><button id="cancelSelfie">Назад</button></div><button id="phoneNext">Продолжить →</button><button id="phoneClose">Вернуться к истории ✕</button></div></div></div><div id="sceneCurtain"></div><div id="menu"><h1>Между строк</h1><p>История о доверии, границах и выборе</p><button id="start">Новая игра</button><button id="continue">Продолжить</button></div><div id="overlay"></div></main><script src="assets.js"></script><script>
 const $=s=>document.querySelector(s),A=window.ASSETS, S={autonomy:0,vulnerability:0,nik:0,lera:0,items:[],flags:{},pos:0};let script=[],current=null,locked=false;const bg=(k)=>$('#bg').style.backgroundImage=`url('${A[k]}')`;
-function scale(){let r=Math.min(innerWidth/1280,innerHeight/720);$('#stage').style.transform=`translate(${(innerWidth-1280*r)/2}px,${(innerHeight-720*r)/2}px) scale(${r})`;}addEventListener('resize',scale);scale();
+function scale(){
+  // Cover the entire viewport while preserving the original 1280×720 layout.
+  // Excess content is cropped equally at the edges rather than leaving bars.
+  const width = document.documentElement.clientWidth || innerWidth;
+  const height = innerHeight;
+  const ratio = Math.max(width / 1280, height / 720);
+  const offsetX = (width - 1280 * ratio) / 2;
+  const offsetY = (height - 720 * ratio) / 2;
+  $('#stage').style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${ratio})`;
+}
+addEventListener('resize', scale);
+addEventListener('orientationchange', scale);
+scale();
 function sprites(arr=[]){$('#sprites').innerHTML='';arr.forEach(([key,side])=>{let img=document.createElement('img');img.src=A[key];img.className=side;$('#sprites').append(img)})}function art(key){$('#fullArt').style.display=key?'block':'none';if(key)$('#fullArt').src=A[key]}
 let transitionBusy=false,transitionTimer=null,lastChapter="";let typingTimer=null,typingFull='',typingDone=true,phoneActive=false;
 function typeLine(text){clearInterval(typingTimer);typingFull=String(text||'');typingDone=false;const el=$('#line');el.textContent='';let i=0;typingTimer=setInterval(()=>{i=Math.min(typingFull.length,i+($('#dialog').classList.contains('narrator')?1:2));el.textContent=typingFull.slice(0,i);if(i===typingFull.length){clearInterval(typingTimer);typingDone=true}},$('#dialog').classList.contains('narrator')?43:19)}
