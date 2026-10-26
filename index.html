@@ -76,28 +76,134 @@
 #dialog.narrator #line{font:italic 20px/1.48 Georgia!important}
 #next{font-size:11px!important;opacity:.48;right:17px;bottom:9px}
 #dialog.narrator #next{opacity:.42}
-</style></head><body><main id="stage"><div id="bg"></div><div id="shade"></div><img id="fullArt"><div id="sprites"></div><div id="dialog"><div id="speaker"></div><div id="line"></div><div id="next">Нажми, чтобы продолжить ▸</div></div><div id="choices"></div><div id="hud"><button id="save">Сохранить</button><button id="load">Загрузить</button><button id="home">Меню</button><span id="chapter"></span></div><div id="phoneWrap"><div id="phoneLayout"><div id="phone"><img id="phoneImg"><div id="phoneScreen"><div id="phoneTitle"><img id="markAvatar" src="assets/mark_avatar.png" alt=""><span>Марк<small>Сообщения</small></span></div><div id="messages"></div><div id="phoneComposer"><span>Сообщение</span><span class="sendArrow">➤</span></div><div id="phoneKeyboard" aria-label="Декоративная клавиатура телефона"><div class="keyrow"><span>й</span><span>ц</span><span>у</span><span>к</span><span>е</span><span>н</span><span>г</span><span>ш</span><span>щ</span><span>з</span><span>х</span></div><div class="keyrow"><span>ф</span><span>ы</span><span>в</span><span>а</span><span>п</span><span>р</span><span>о</span><span>л</span><span>д</span><span>ж</span><span>э</span></div><div class="keyrow"><span>я</span><span>ч</span><span>с</span><span>м</span><span>и</span><span>т</span><span>ь</span><span>б</span><span>ю</span></div><div class="keyrow"><span class="special">123</span><span class="spacekey">пробел</span><span class="special">↵</span></div></div></div></div><div id="phoneSide"><div id="phonePrompt"></div><div id="phoneChoices"></div><div id="phonePreview"><img id="selfiePreview" alt="Селфи героини"><div>Отправить эту фотографию Марку?</div><button id="confirmSelfie">Отправить фото</button><button id="cancelSelfie">Назад</button></div><button id="phoneNext">Продолжить →</button><button id="phoneClose">Вернуться к истории ✕</button></div></div></div><div id="sceneCurtain"></div><div id="menu"><h1>Между строк</h1><p>История о доверии, границах и выборе</p><button id="start">Новая игра</button><button id="continue">Продолжить</button></div><div id="overlay"></div></main><script src="assets.js"></script><script>
-const $=s=>document.querySelector(s),A=window.ASSETS, S={autonomy:0,vulnerability:0,nik:0,lera:0,items:[],flags:{},pos:0};let script=[],current=null,locked=false;const bg=(k)=>$('#bg').style.backgroundImage=`url('${A[k]}')`;
-function scale(){
-  // Cover the entire viewport while preserving the original 1280×720 layout.
-  // Excess content is cropped equally at the edges rather than leaving bars.
-  const width = document.documentElement.clientWidth || innerWidth;
-  const height = innerHeight;
-  const ratio = Math.max(width / 1280, height / 720);
-  const offsetX = (width - 1280 * ratio) / 2;
-  const offsetY = (height - 720 * ratio) / 2;
-  $('#stage').style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${ratio})`;
+
+/* Dialogue copy occupies three quarters of the card */
+#dialog #line{max-width:75%;overflow-wrap:break-word}
+#dialog.narrator #line{max-width:75%;margin:0 auto}
+#wardrobeGame{position:absolute;inset:0;z-index:21;display:none;background:#201720;color:white;font-family:Arial,sans-serif}
+#wardrobeGame .wardrobePhoto{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#wardrobeGame .wardrobeTitle{position:absolute;top:20px;left:50%;transform:translateX(-50%);background:#251b2bcc;padding:13px 28px;border-radius:15px;text-align:center;font-size:20px;min-width:430px;z-index:3}
+#wardrobeGame .hotspot{position:absolute;border:3px solid #ffe4a8;border-radius:18px;background:#ffe7a122;cursor:pointer;box-shadow:0 0 20px #fff3, inset 0 0 20px #fff2;transition:background .2s,box-shadow .2s;z-index:2;animation:wardrobeGlow 1.6s ease-in-out infinite alternate}
+#wardrobeGame .hotspot:hover{background:#ffe7a155;box-shadow:0 0 25px #ffe4a8}
+#wardrobeGame .hotspot.chosen{background:#94e5b04f;border-color:#9bffbf;animation:none}
+#wardrobeGame .hotspot:focus-visible{outline:4px solid white;outline-offset:3px}
+#wardrobeGame .wardrobeStatus{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);background:#251b2be6;padding:12px 23px;border-radius:13px;z-index:3;text-align:center;white-space:nowrap}
+@keyframes wardrobeGlow{from{box-shadow:0 0 8px #ffe4a8}to{box-shadow:0 0 24px #ffe4a8}}
+
+/* V12: smooth crossfade between scene backgrounds */
+#bgIncoming{
+  position:absolute;inset:0;
+  background-position:center;
+  background-size:cover;
+  opacity:0;
+  pointer-events:none;
+  z-index:0;
 }
-addEventListener('resize', scale);
-addEventListener('orientationchange', scale);
-scale();
-function sprites(arr=[]){$('#sprites').innerHTML='';arr.forEach(([key,side])=>{let img=document.createElement('img');img.src=A[key];img.className=side;$('#sprites').append(img)})}function art(key){$('#fullArt').style.display=key?'block':'none';if(key)$('#fullArt').src=A[key]}
+#shade,#fullArt,#sprites,#dialog,#choices,#hud,#phoneWrap,#sceneCurtain,#menu,#overlay,#wardrobeGame{
+  /* Preserve the existing positioning and stacking logic. */
+}
+#menu{
+  background:linear-gradient(120deg,rgba(28,19,36,.45),rgba(28,19,36,.60)),
+             url('assets/added26/cover.png') center/cover no-repeat;
+}
+
+/* V13: menu layout, legible typography and polished ending cards */
+#bg{z-index:0}#bgIncoming{z-index:1}#shade{z-index:2}#fullArt{z-index:3}#sprites{z-index:4}
+#dialog{z-index:6}#choices{z-index:9}#hud{z-index:16}#wardrobeGame{z-index:17}
+#menu{align-items:flex-start!important;text-align:left!important;padding:75px 0 75px 120px!important;gap:16px!important}
+#menu h1{font-family:'Segoe Print','Comic Sans MS','URW Chancery L',cursive!important;font-style:italic;font-weight:500;font-size:82px!important;letter-spacing:1px;line-height:1.15}
+#menu p{opacity:.58;font-size:19px!important;margin:0 0 24px!important}
+#menu button{align-self:flex-start;min-width:265px;text-align:center}
+#line{max-width:75%;text-wrap:pretty;overflow-wrap:normal}
+#dialog.narrator #line{max-width:100%}
+#overlay.analysisView{padding:32px 55px;gap:12px;overflow-y:auto;justify-content:center}
+#overlay.analysisView h2{font-size:35px}
+#overlay.analysisView #cards{width:100%;max-width:1000px;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+#overlay.analysisView #cards button{display:flex;flex-direction:column;gap:9px;min-height:108px;max-height:255px;overflow-y:auto;padding:19px 22px;background:rgba(255,255,255,.91);border:1px solid rgba(255,255,255,.7);border-radius:16px;text-align:left;color:#342637;box-shadow:0 10px 26px #0003;transition:background .2s,transform .2s}
+#overlay.analysisView #cards button:hover{background:#fff;transform:translateY(-2px)}
+#cards .cardHeading{display:block;font:bold 20px/1.3 Georgia;color:#6c415f}
+#cards .cardBody{display:block;font:16px/1.45 Arial;color:#3d3540;white-space:normal}
+#cards .cardHint{display:block;font:13px Arial;color:#907b91}
+#overlay.analysisView #again{margin-top:12px;background:#8b5579!important;color:white!important;border:1px solid #e2bfd5!important;border-radius:25px!important;padding:14px 34px!important;font:bold 17px Arial!important;box-shadow:0 8px 20px #0004}
+#overlay.analysisView #again:hover{background:#a96c96!important}
+
+/* V14: deterministic scene fades, consistent dialogue, interactive cards */
+#bg,#bgIncoming{transition:opacity 950ms ease-in-out;background-size:cover;background-position:center}
+#bg{opacity:1}
+#bgIncoming{opacity:0}
+#fullArt{opacity:0;transition:opacity 950ms ease-in-out}
+.artGhost{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:3;pointer-events:none;opacity:1;transition:opacity 950ms ease-in-out}
+#dialog,#dialog.narrator,#dialog.thought{animation:none!important;transition:none!important}
+#cards .cardBody[hidden]{display:none!important}
+#cards button[aria-expanded="false"]{min-height:108px}
+#cards button[aria-expanded="true"]{min-height:165px}
+#menu{padding:0!important;gap:0!important;justify-content:center!important}
+#menu .menuContent{display:flex;flex-direction:column;align-items:flex-start;gap:13px;position:relative;margin-left:55px;margin-top:4px;padding:12px 24px 22px 0;max-width:700px}
+#menu .menuContent::before{content:"";position:absolute;z-index:-1;inset:0 -25px 0 -25px;background:linear-gradient(90deg,rgba(29,20,31,.62),rgba(29,20,31,.22) 75%,transparent);border-radius:10px}
+#menu h1{font-size:79px!important;white-space:nowrap;margin:0 0 2px!important;font-family:"Segoe Print","Bradley Hand","Comic Sans MS",cursive!important;font-weight:400!important;font-style:italic;letter-spacing:-2px}
+#menu p{margin:0 0 20px!important;opacity:.65!important;font:17px Arial!important}
+#menu button{width:268px;min-width:0!important;padding:11px 18px!important;font-size:20px!important;border-radius:10px}
+
+/* V15: original cover art, no overlay panel or color filter */
+#menu{background: url('assets/added26/cover.png') center/cover no-repeat!important;}
+#menu .menuContent::before{content:none!important;display:none!important;background:none!important;}
+#menu .menuContent{background:none!important;box-shadow:none!important;backdrop-filter:none!important;}
+/* Blocking is a system status, not an incoming message. */
+#messages .blockNotice{display:block!important;box-sizing:border-box;width:100%;max-width:none!important;margin:15px 0 8px!important;padding:13px 8px!important;text-align:center!important;color:#c73445!important;background:transparent!important;box-shadow:none!important;border:none!important;font:700 16px/1.35 Arial,sans-serif!important;animation:none!important;}
+#messages .blockNotice .time{display:none!important;}
+</style></head><body><main id="stage"><div id="bg"></div><div id="bgIncoming"></div><div id="shade"></div><img id="fullArt"><div id="sprites"></div><div id="dialog"><div id="speaker"></div><div id="line"></div><div id="next">Нажми, чтобы продолжить ▸</div></div><div id="choices"></div><div id="hud"><button id="save">Сохранить</button><button id="load">Загрузить</button><button id="home">Меню</button><span id="chapter"></span></div><div id="phoneWrap"><div id="phoneLayout"><div id="phone"><img id="phoneImg"><div id="phoneScreen"><div id="phoneTitle"><img id="markAvatar" src="assets/mark_avatar.png" alt=""><span>Марк<small>Сообщения</small></span></div><div id="messages"></div><div id="phoneComposer"><span>Сообщение</span><span class="sendArrow">➤</span></div><div id="phoneKeyboard" aria-label="Декоративная клавиатура телефона"><div class="keyrow"><span>й</span><span>ц</span><span>у</span><span>к</span><span>е</span><span>н</span><span>г</span><span>ш</span><span>щ</span><span>з</span><span>х</span></div><div class="keyrow"><span>ф</span><span>ы</span><span>в</span><span>а</span><span>п</span><span>р</span><span>о</span><span>л</span><span>д</span><span>ж</span><span>э</span></div><div class="keyrow"><span>я</span><span>ч</span><span>с</span><span>м</span><span>и</span><span>т</span><span>ь</span><span>б</span><span>ю</span></div><div class="keyrow"><span class="special">123</span><span class="spacekey">пробел</span><span class="special">↵</span></div></div></div></div><div id="phoneSide"><div id="phonePrompt"></div><div id="phoneChoices"></div><div id="phonePreview"><img id="selfiePreview" alt="Селфи героини"><div>Отправить эту фотографию Марку?</div><button id="confirmSelfie">Отправить фото</button><button id="cancelSelfie">Назад</button></div><button id="phoneNext">Продолжить →</button><button id="phoneClose">Вернуться к истории ✕</button></div></div></div><div id="wardrobeGame" role="group" aria-label="Мини-игра: собери школьный образ"><img class="wardrobePhoto" src="assets/added26/wardrobe.jpg" alt="Открытый шкаф с рубашками, юбками и туфлями"><div class="wardrobeTitle">Собери школьный образ: выбери рубашку, юбку и туфли</div><button class="hotspot" data-item="shirt" aria-label="Выбрать рубашку" style="left:36.4%;top:24.4%;width:10.3%;height:38.7%"></button><button class="hotspot" data-item="skirt" aria-label="Выбрать юбку" style="left:49.7%;top:25.0%;width:7.9%;height:34.6%"></button><button class="hotspot" data-item="shoes" aria-label="Выбрать туфли" style="left:41.8%;top:63.8%;width:11.0%;height:13.7%"></button><div class="wardrobeStatus" id="wardrobeStatus">Выбрано: 0 из 3</div></div><div id="sceneCurtain"></div><div id="menu"><div class="menuContent"><h1>Между строк</h1><p>История о доверии, границах и выборе</p><button id="start">Новая игра</button><button id="continue">Продолжить</button></div></div><div id="overlay"></div></main><script src="assets.js"></script><script>
+const $=s=>document.querySelector(s),A=window.ASSETS, S={autonomy:0,vulnerability:0,nik:0,lera:0,items:[],flags:{},pos:0};let script=[],current=null,locked=false;let activeBackground='', bgToken=0, bgFront='bg';
+function bg(k){
+  const url=A[k];
+  if(!url || url===activeBackground)return;
+  activeBackground=url;
+  const token=++bgToken;
+  const incoming=bgFront==='bg'?'bgIncoming':'bg';
+  const next=$('#'+incoming), old=$('#'+bgFront);
+  const image=new Image();
+  image.onload=()=>{
+    if(token!==bgToken)return;
+    next.style.transition='none';
+    next.style.backgroundImage=`url("${url}")`;
+    next.style.opacity='0';
+    next.style.zIndex='1';
+    old.style.zIndex='0';
+    void next.offsetWidth;
+    next.style.transition='opacity 950ms ease-in-out';
+    next.style.opacity='1';
+    bgFront=incoming;
+  };
+  image.onerror=()=>{if(token===bgToken){next.style.backgroundImage=`url("${url}")`;next.style.opacity='1';bgFront=incoming}};
+  image.src=url;
+}
+function scale(){let r=Math.min(innerWidth/1280,innerHeight/720);$('#stage').style.transform=`translate(${(innerWidth-1280*r)/2}px,${(innerHeight-720*r)/2}px) scale(${r})`;}addEventListener('resize',scale);scale();
+function sprites(arr=[]){arr=arr.map(([key,side])=>[(!S.flags.dressed&&({hero0:'homeNeutral',hero1:'homeHappy',hero2:'homeNeutral',hero3:'homeNeutral',hero4:'homeNeutral',hero5:'homeNeutral',hero6:'homeHappy',hero7:'homeHappy',hero8:'homeNeutral'}[key]))||key,side]);$('#sprites').innerHTML='';arr.forEach(([key,side])=>{let img=document.createElement('img');img.src=A[key];img.className=side;$('#sprites').append(img)})}let artSequence=0;
+function art(key){
+  const el=$('#fullArt'), seq=++artSequence;
+  if(!key){el.style.opacity='0';setTimeout(()=>{if(seq===artSequence)el.style.display='none'},900);return}
+  const url=A[key], pre=new Image();
+  pre.onload=()=>{
+    if(seq!==artSequence)return;
+    const outgoing=el.style.display!=='none'&&el.getAttribute('src');
+    if(outgoing){
+      const ghost=document.createElement('img');
+      ghost.src=el.src;ghost.className='artGhost';
+      el.parentNode.insertBefore(ghost,el);
+      requestAnimationFrame(()=>{ghost.style.opacity='0'});
+      setTimeout(()=>ghost.remove(),1050);
+    }
+    el.style.transition='none';el.style.opacity='0';el.src=url;el.style.display='block';
+    void el.offsetWidth;
+    el.style.transition='opacity 950ms ease-in-out';el.style.opacity='1';
+  };
+  pre.src=url;
+}
 let transitionBusy=false,transitionTimer=null,lastChapter="";let typingTimer=null,typingFull='',typingDone=true,phoneActive=false;
-function typeLine(text){clearInterval(typingTimer);typingFull=String(text||'');typingDone=false;const el=$('#line');el.textContent='';let i=0;typingTimer=setInterval(()=>{i=Math.min(typingFull.length,i+($('#dialog').classList.contains('narrator')?1:2));el.textContent=typingFull.slice(0,i);if(i===typingFull.length){clearInterval(typingTimer);typingDone=true}},$('#dialog').classList.contains('narrator')?43:19)}
+function typeLine(text){clearInterval(typingTimer);typingFull=String(text||'').replace(/(^|[\s(«])((?:в|во|на|без|и|а|но|с|со|к|ко|у|о|об|от|до|за|из|по|не|ни|для|при|под|над|перед|через|про|или|что|как|же|бы|ли|1))\s+(?=\S)/gim,(_,before,word)=>before+word+'\u00a0');typingDone=false;const el=$('#line');el.textContent='';let i=0;typingTimer=setInterval(()=>{i=Math.min(typingFull.length,i+($('#dialog').classList.contains('narrator')?1:2));el.textContent=typingFull.slice(0,i);if(i===typingFull.length){clearInterval(typingTimer);typingDone=true}},$('#dialog').classList.contains('narrator')?43:19)}
 function finishTyping(){if(!typingDone){clearInterval(typingTimer);$('#line').textContent=typingFull;typingDone=true;return true}return false}
 function applyOption(o){if(o.fn)o.fn();if(o.to!==undefined)jump(o.to);else advance()}
 function choice(opts){locked=true;$('#dialog').style.display='none';$('#choices').style.display='flex';$('#choices').innerHTML='';let question=document.createElement('div');question.id='choiceQuestion';question.textContent=(current&&current.t)||'Выбери ответ';$('#choices').append(question);opts.forEach(o=>{let b=document.createElement('button');b.textContent=o.t;b.onclick=()=>{$('#choices').style.display='none';locked=false;applyOption(o)};$('#choices').append(b)})}
-function messageBubble(m){let b=document.createElement('div');b.className='bubble '+(m.me?'outgoing':'incoming');let t=document.createElement('span');t.className='time';t.textContent=m.time||'12:18';b.append(t,document.createTextNode(m.text));$('#messages').append(b);return b}
+function messageBubble(m){let b=document.createElement('div');const blocked=m.text==='Марк заблокирован';b.className=blocked?'blockNotice':'bubble '+(m.me?'outgoing':'incoming');if(!blocked){let t=document.createElement('span');t.className='time';t.textContent=m.time||'12:18';b.append(t)}b.append(document.createTextNode(m.text));$('#messages').append(b);return b}
 function phone(messages,opts=null,prompt=''){
  locked=true;phoneActive=true;$('#dialog').style.display='none';$('#choices').style.display='none';$('#phoneImg').src=A.phone;$('#phoneWrap').style.display='flex';
  S.chatHistory=S.chatHistory||[];S.chatSeen=S.chatSeen||{};
@@ -133,10 +239,10 @@ function phone(messages,opts=null,prompt=''){
 function closePhone(){if($('#phoneClose').disabled)return;phoneActive=false;$('#phoneWrap').style.display='none';$('#phoneChoices').style.display='flex';locked=false;
  let pending=S.phonePending;S.phonePending=null;if(pending&&pending.pos===S.pos){let node=script[S.pos];let opt=node.options[pending.option];applyOption(opt)}else advance()}
 $('#phoneClose').onclick=closePhone;$('#phoneNext').onclick=closePhone;
-function say(who,text){$('#speaker').textContent=who;$('#dialog').classList.toggle('thought',who.includes('мысли')||who.includes('Воспоминание'));$('#dialog').classList.toggle('narrator',who==='Рассказчик');$('#dialog').style.display='block';typeLine(text)}
+function say(who,text){$('#dialog').style.animation='none';$('#speaker').textContent=who;$('#dialog').classList.toggle('thought',who.includes('мысли')||who.includes('Воспоминание'));$('#dialog').classList.toggle('narrator',who==='Рассказчик');$('#dialog').style.display='block';typeLine(text)}
 function jump(label){if(transitionBusy)return;let i=script.findIndex(x=>x.id===label);if(i<0){console.warn('Missing',label);return}S.pos=i;run()}
 function advance(){if(transitionBusy)return;S.pos++;run()}
-function run(){let n=script[S.pos];if(!n){ending();return}
+function run(){let n=script[S.pos];if(!n){ending();return}if(n.wardrobe){startWardrobe();return}
 if(n.chapter && lastChapter && n.chapter!==lastChapter && !transitionBusy){
   transitionBusy=true;clearTimeout(transitionTimer);clearInterval(typingTimer);
   $('#dialog').style.display='none';$('#choices').style.display='none';$('#phoneWrap').style.display='none';
@@ -150,17 +256,19 @@ $('#dialog').onclick=()=>{if(transitionBusy)return;if(finishTyping())return;if(!
 script=[
 {id:'start',chapter:'Глава 1 · Дом · 07:00',bg:'room',art:'wake',w:'Рассказчик',t:'7:00. Будильник разрывает тишину. На экране телефона — сообщения от Марка. Вы знакомы всего четыре дня.'},
 {w:'Героиня',t:'Он опять не спал? Надеюсь, ничего не случилось…',phone:[msg('Ты спишь? Мне не спалось всю ночь. Думал о том, как странно устроена жизнь: встретить родственную душу в приложении… Это один шанс на миллион. ',false,'06:15'),msg('Не люблю утро без тебя. Кажется, я уже зависим от твоих сообщений. Ты же напишешь, как только откроешь глаза?',false,'06:42'),msg('Ты онлайн уже две минуты и молчишь… Я что-то не то сказал?',false,'06:58')],options:[O('«Доброе утро! Прости, что сразу не ответила»',add(0,1)),O('«Доброе утро. Я только проснулась, напишу после сборов»',add(1)),O('«Мне неприятно, когда ты отслеживаешь мой онлайн»',add(2))]},
-{bg:'bath',art:null,spr:[['hero1','center']],w:'Рассказчик',t:'В ванной всё привычно: зеркало, расчёска, зубная щётка и любимый блеск.'},
+{bg:'kitchen',art:null,spr:[['mom_довольная','right'],['homeHappy','left']],w:'Мама',t:'Доброе утро! Ты сегодня такая задумчивая. Что-то случилось?'},
+{w:'Героиня',t:'Я познакомилась с парнем. Его зовут Марк. Он очень внимательный.'},
+{spr:[['mom_задумчивая','right'],['homeNeutral','left']],w:'Мама',t:'Здорово, что тебе интересно общаться. А вы уже встречались?'},
+{w:'Героиня',t:'Сегодня после школы собираемся в парк.',options:[O('Рассказать маме точное место встречи',()=>{S.flags.mom=true;S.autonomy++}),O('Сказать только, что встречаемся в парке',()=>{S.flags.mom=false}),O('Скрыть подробности — «Не волнуйся»',add(0,1))]},
+{spr:[['mom_обеспокоенная','right'],['homeNeutral','left']],w:'Мама',t:'Будь внимательна к своим ощущениям. Ты никому ничего не обязана, даже если человек говорит красивые слова. И лучше встречаться в людном месте.'},
+{bg:'room',spr:[['homeHappy','center']],w:'Героиня',t:'Перед школой нужно переодеться. Открою шкаф и соберу школьный образ.'},
+ {wardrobe:true},
+{bg:'bath',art:null,spr:[['hero0','center']],w:'Рассказчик',t:'В ванной всё привычно: зеркало, расчёска, зубная щётка и любимый блеск.'},
 {w:'Героиня',t:'Я чищу зубы, расчёсываю волосы и наношу любимый блеск. В зеркале мелькает моё отражение — и вспоминаются слова Марка.'},
 {art:'ready',spr:[],w:'Воспоминание · голос Марка',t:'«Современные девушки прячут себя за тонной косметики… Пожалуйста, не красься ярко, не будь как все эти пустые куклы».'},
 {w:'Героиня',t:'В отражении я вижу себя. Как поступить с блеском?',options:[O('Стереть блеск — «Он прав, естественность лучше»',add(0,1)),O('Оставить как обычно — «Мне нравится мой блеск»',add(1)),O('Добавить яркости — «Я решаю сама»',add(2))]},
-{bg:'kitchen',art:null,spr:[['mom_довольная','right'],['hero7','left']],w:'Мама',t:'Доброе утро! Ты сегодня такая задумчивая. Что-то случилось?'},
-{w:'Героиня',t:'Я познакомилась с парнем. Его зовут Марк. Он очень внимательный.'},
-{spr:[['mom_задумчивая','right'],['hero2','left']],w:'Мама',t:'Здорово, что тебе интересно общаться. А вы уже встречались?'},
-{w:'Героиня',t:'Сегодня после школы собираемся в парк.',options:[O('Рассказать маме точное место встречи',()=>{S.flags.mom=true;S.autonomy++}),O('Сказать только, что встречаемся в парке',()=>{S.flags.mom=false}),O('Скрыть подробности — «Не волнуйся»',add(0,1))]},
-{spr:[['mom_обеспокоенная','right'],['hero0','left']],w:'Мама',t:'Будь внимательна к своим ощущениям. Ты никому ничего не обязана, даже если человек говорит красивые слова. И лучше встречаться в людном месте.'},
-{bg:'room',spr:[['hero6','center']],w:'Героиня',t:'Сумка собрана: тетради, учебники и всё необходимое на месте. Пора выходить в школу.'},
-{id:'school',chapter:'Глава 2 · Школа · 07:40',bg:'school',spr:[],w:'Рассказчик',t:'У школьного входа уже шумно. Кто-то спорит о контрольной, кто-то смеётся. Впереди — длинный день.'},
+ {bg:'studyDesk',spr:[],w:'Героиня',t:'Теперь осталось собрать сумку. Учебники, тетради и канцелярия — всё на месте. После школы стоило бы прибраться на столе: здесь такой беспорядок! А сейчас пора выходить.'},
+{id:'school',chapter:'Глава 2 · Школа · 07:40',bg:'school',spr:[],w:'Рассказчик',t:'У школьного входа уже шумно. Кто-то спорит о контрольной, кто-то смеётся.\nВпереди — длинный день.'},
 {bg:'hall',spr:[['lera_нейтральная','right'],['hero0','left']],w:'Лера',t:'Ого, ты какая-то бледная. Опять до трёх ночи переписывалась с этим своим Марком?'},
 {w:'Героиня',t:'Что ответить Лере?',options:[O('«Он за четыре дня узнал обо мне больше всех!»',add(0,1,0,-1)),O('«Он внимательный, но иногда обижается, если я не отвечаю»',add(1,0,0,1)),O('«Он уже зовёт меня своей девочкой. Это нормально?»',add(2,0,0,2))]},
 {spr:[['lera_задумчивая','right'],['hero1','left']],w:'Лера',t:'Четыре дня — это ещё не неделя. А почему вы не виделись? И ты уверена, что встреча будет в людном месте?'},
@@ -169,7 +277,7 @@ script=[
 {bg:'hall',spr:[['hero2','center']],w:'Героиня · мысли',t:'Лера уходит к кабинету, а я ещё несколько секунд стою у окна. Слова «четыре дня» звучат в голове неожиданно громко.'},
 {spr:[['hero3','center']],w:'Героиня · мысли',t:'С Марком правда легко говорить о музыке и фильмах. Но почему перед каждым ответом я теперь думаю, не обидится ли он? Может, дело не в том, как быстро я печатаю.'},
 {spr:[['hero1','center']],w:'Героиня · мысли',t:'Звенит первый звонок. Я прячу телефон в карман и решаю хотя бы на уроке сосредоточиться на себе.'},
-{bg:'hall',spr:[['nik_радостный','right'],['hero4','left']],w:'Никита',t:'О, привет! Ты уже готова к литературе? Я распечатал список тем, могу скинуть.'},
+{bg:'class',spr:[['nik_радостный','right'],['hero4','left']],w:'Никита',t:'О, привет! Ты уже готова к литературе? Я распечатал список тем, могу скинуть.'},
 {w:'Героиня',t:'Никита — наш староста. Всегда выручает с уроками.',options:[O('«Спасибо, ты меня спас!»',add(0,0,2)),O('«Скинь, пожалуйста, потом посмотрю»',add(0,0,1)),O('«Не сейчас, я занята»',add(0,0,-1))]},
 {spr:[['nik_смущенный','right'],['hero2','left']],w:'Никита',t:'Кстати, после уроков мы с ребятами идём за чаем. Хочешь с нами?'},
 {w:'Героиня',t:'Я обещала встретиться с Марком…',options:[O('«Спасибо! Может, зайду ненадолго»',()=>{S.nik+=2;S.flags.tea=true}),O('«У меня встреча, но спасибо за приглашение»',()=>{S.nik++;S.flags.tea=false}),O('«Не могу, и не спрашивай»',()=>{S.nik--;S.flags.tea=false})]},
@@ -178,13 +286,13 @@ script=[
 {spr:[['teacher_нейтральная','center']],w:'Учительница',t:'Прежде чем начнём, вспомните: как в литературе отличить заботу героя от желания управлять другим человеком? Ищите подтверждения в поступках, а не только в красивых словах.'},
 {spr:[['hero2','left'],['teacher_нейтральная','right']],w:'Героиня · мысли',t:'Странно. Вчера я бы сразу сказала, что забота — это когда о тебе постоянно думают. А теперь хочется добавить: когда ещё и слышат тебя.'},
 {spr:[['teacher_нейтральная','center']],w:'Учительница',t:'У вас двадцать минут. Если ответ кажется очевидным, перечитайте вопрос: иногда важна именно причина поступка.'},
-{bg:'classClose',spr:[['hero3','left']],w:'Рассказчик',t:'Под тетрадью вспыхивает экран. Марк уже освободился и ждёт ответа.'},
-{w:'Телефон',t:'Марк пишет прямо во время контрольной.',autoNextPhone:true,phone:[msg('Я уже освободился раньше. Жду тебя около школы. Ты почему не отвечаешь сразу? Я же вижу, что ты была в сети пять минут назад.'),msg('У нас контрольный тест по литературе, учительница ходит по рядам.',true),msg('Тест важнее меня? Я бросил дела, стою на холоде ради тебя. Видел, как ты смеялась с парнем в сером худи. Кто это?')],options:[O('«Это Никита, староста! Он только помогал с уроками, честно!»',add(0,2)),O('«Мы одноклассники. Мне пора убрать телефон»',add(1)),O('«Ты следил за мной? Мне не нравится этот допрос»',add(2))]},
-{w:'Телефон',t:'Я быстро сделала фотографию прямо за партой, но пока не отправила её. Марк снова пишет. Отправить ли ему фото?',phone:[msg('Я не злюсь. Просто думал, ты особенная. Скинь фото из класса прямо сейчас — хочу видеть, что ты сидишь одна. Если нечего скрывать, конечно.')],options:[O('Отправить селфи из класса',()=>{S.vulnerability+=2;S.flags.photo=true}),O('«Убираю телефон до звонка. Увидимся в парке»',()=>{S.autonomy+=2;S.flags.photo=false}),O('Не отвечать и убрать телефон',()=>{S.autonomy++;S.flags.photo=false})]},
+{bg:'classDesk',spr:[],w:'Рассказчик',t:'Под тетрадью вспыхивает экран. Марк уже освободился и ждёт ответа.'},
+{bg:'classDesk',spr:[],w:'Телефон',t:'Марк пишет прямо во время контрольной.',autoNextPhone:true,phone:[msg('Я уже освободился раньше. Жду тебя около школы. Ты почему не отвечаешь сразу? Я же вижу, что ты была в сети пять минут назад.'),msg('У нас контрольный тест по литературе, учительница ходит по рядам.',true),msg('Тест важнее меня? Я бросил дела, стою на холоде ради тебя. Видел, как ты смеялась с парнем в сером худи. Кто это?')],options:[O('«Это Никита, староста! Он только помогал с уроками, честно!»',add(0,2)),O('«Мы одноклассники. Мне пора убрать телефон»',add(1)),O('«Ты следил за мной? Мне не нравится этот допрос»',add(2))]},
+{bg:'classDesk',spr:[],w:'Телефон',t:'Я быстро сделала фотографию прямо за партой, но пока не отправила её. Марк снова пишет. Отправить ли ему фото?',phone:[msg('Я не злюсь. Просто думал, ты особенная. Скинь фото из класса прямо сейчас — хочу видеть, что ты сидишь одна. Если нечего скрывать, конечно.')],options:[O('Отправить селфи из класса',()=>{S.vulnerability+=2;S.flags.photo=true}),O('«Убираю телефон до звонка. Увидимся в парке»',()=>{S.autonomy+=2;S.flags.photo=false}),O('Не отвечать и убрать телефон',()=>{S.autonomy++;S.flags.photo=false})]},
 {when:()=>S.flags.photo,art:'selfie',spr:[],w:'Героиня · мысли',t:'Фотография отправлена. Но почему мне приходится доказывать, где я нахожусь?'},
-{when:()=>S.flags.photo,art:null,spr:[['hero5','left']],w:'Героиня · мысли',t:'Телефон снова вибрирует. Я убираю его под тетрадь.'},
-{spr:[['teacher_недовольная','right'],['hero5','left']],w:'Учительница',t:'У нас контрольная. Телефон убери, пожалуйста. Если нужна помощь по заданию — подними руку.'},
-{spr:[['teacher_недовольная','right'],['hero5','left']],w:'Учительница',t:'Я понимаю, что сообщения бывают срочными. Но если кто-то требует ответа прямо посреди контрольной, это не повод лишать себя права спокойно учиться.'},
+{when:()=>S.flags.photo,bg:'classDesk',art:null,spr:[],w:'Героиня · мысли',t:'Телефон снова вибрирует. Я убираю его под тетрадь.'},
+{bg:'class',spr:[['teacher_недовольная','right'],['hero5','left']],w:'Учительница',t:'У нас контрольная. Телефон убери, пожалуйста. Если нужна помощь по заданию — подними руку.'},
+{bg:'class',spr:[['teacher_недовольная','right'],['hero5','left']],w:'Учительница',t:'Я понимаю, что сообщения бывают срочными. Но если кто-то требует ответа прямо посреди контрольной, это не повод лишать себя права спокойно учиться.'},
 {spr:[['teacher_нейтральная','right'],['hero2','left']],w:'Героиня',t:'Извините. Я правда отвлеклась. Можно я допишу последнюю строчку?'},
 {spr:[['teacher_нейтральная','center']],w:'Учительница',t:'Конечно. И если после урока захочешь поговорить — я здесь.'},
 {bg:'hallNight',spr:[['nik_серьезный','right'],['hero3','left']],w:'Никита',t:'Ты сегодня совсем не в себе. Всё нормально? Если кто-то тебя достаёт сообщениями, не обязательно отвечать немедленно.'},
@@ -210,7 +318,7 @@ script=[
 {when:()=>S.flags.phoneGiven,spr:[['mark_довольный','right'],['hero5','left']],w:'Марк',t:'Вот видишь, ничего страшного. Я просто хочу быть уверен в нас. Зачем ты так переживала?'},
 {when:()=>!S.flags.phoneGiven,spr:[['mark_очень злой','right'],['hero3','left']],w:'Марк',t:'Не ожидал такого. Я же просто просил доверия!'},
 {w:'Героиня',t:'Как завершить встречу?',options:[O('Остаться и попытаться его успокоить',()=>{S.vulnerability+=2;S.flags.parkExit='stay'}),O('Сказать, что пора домой, и уйти',()=>{S.autonomy+=2;S.flags.parkExit='leave'}),O('Позвонить близкому человеку и уйти',()=>{S.autonomy+=3;S.flags.parkExit='call';S.flags.called=true})]},
-{when:()=>S.flags.parkExit==='stay',spr:[['mark_наигранно грустный','right'],['hero5','left']],w:'Героиня',t:'Я остаюсь на скамейке. «Давай просто спокойно поговорим», — предлагаю я, хотя в груди всё ещё неприятно сжимается.'},
+{when:()=>S.flags.parkExit==='stay',spr:[['mark_наигранно грустный','right'],['hero5','left']],w:'Героиня',t:'Я остаюсь на скамейке и предлагаю Марку спокойно поговорить. Но даже сейчас, когда мы сидим рядом, тревога никак не отпускает.'},
 {when:()=>S.flags.parkExit==='stay',spr:[['mark_нейтральный','right'],['hero3','left']],w:'Марк',t:'Вот теперь ты меня слышишь. Я ведь не прошу многого — просто хочу быть для тебя самым важным.'},
 {when:()=>S.flags.parkExit==='stay',spr:[['hero2','left'],['mark_довольный','right']],w:'Героиня · мысли',t:'Мы сидим ещё почти час. Марк рассказывает о своих планах, иногда даже шутит. Но разговор снова и снова возвращается к тому, с кем мне можно общаться.'},
 {when:()=>S.flags.parkExit==='stay',spr:[['hero3','left'],['mark_нейтральный','right']],w:'Рассказчик',t:'Когда в парке становится темно, я говорю, что мне действительно пора. Марк неохотно прощается. Я ухожу только теперь — встреча длилась гораздо дольше, чем я собиралась.'},
@@ -229,9 +337,37 @@ script=[
 {art:null,spr:[['mom_задумчивая','right'],['hero2','left']],w:'Героиня',t:'Спасибо, мам. Мне правда нужно было с кем-то поговорить.'},
 {w:'Телефон',t:'Экран снова загорается.',phone:[msg('Ты разбила мне сердце сегодня. Я думал, мы созданы друг для друга, а ты оказалась холодной и незрелой. Я готов дать нам шанс, если сейчас же позвонишь и извинишься.')],options:[O('Позвонить и извиниться',()=>{S.vulnerability+=3;S.flags.last='call'}),O('Отложить телефон и пока ничего не решать',()=>{S.flags.last='wait'}),O('Заблокировать Марка и обратиться за поддержкой',()=>{S.autonomy+=3;S.flags.last='block'})]},
 ];
+function startWardrobe(){
+  locked=true;$('#dialog').style.display='none';$('#choices').style.display='none';$('#phoneWrap').style.display='none';
+  const game=$('#wardrobeGame');game.style.display='block';
+  const picked=new Set();game.querySelectorAll('.hotspot').forEach(b=>{b.classList.remove('chosen');b.setAttribute('aria-pressed','false');b.onclick=()=>{
+    picked.add(b.dataset.item);b.classList.add('chosen');b.setAttribute('aria-pressed','true');
+    $('#wardrobeStatus').textContent=picked.size===3?'Образ собран! Переодеваемся…':`Выбрано: ${picked.size} из 3`;
+    if(picked.size===3){game.querySelectorAll('.hotspot').forEach(x=>x.disabled=true);setTimeout(()=>{game.style.display='none';game.querySelectorAll('.hotspot').forEach(x=>x.disabled=false);S.flags.dressed=true;locked=false;advance()},650)}
+  }});
+}
 function ending(){clearInterval(typingTimer);$('#phoneWrap').style.display='none';$('#dialog').style.display='none';locked=true;art(null);sprites([]);let score=S.autonomy-S.vulnerability;let type=S.flags.last==='block'?'green':S.flags.last==='call'?'red':'yellow';let data={green:['Зелёный финал · Границы','Ты блокируешь Марка и созваниваешься с Лерой. Рядом есть люди, которым можно доверять. Ты выбираешь отношения, в которых уважают твои решения.'],yellow:['Жёлтый финал · Сомнения','Ты пока не звонишь, но продолжаешь возвращаться мыслями к разговору. Тебе нужно время, чтобы разобраться в чувствах. Поддержка друзей и близких остаётся доступной.'],red:['Красный финал · Подавление','Ты звонишь Марку, чтобы помириться, хотя разговор оставил неприятное чувство. Постепенно ты всё чаще отказываешься от своих планов ради его одобрения. Но ситуацию можно изменить, обратившись за поддержкой.']}[type];showOverlay(`<h2>${data[0]}</h2><p>${data[1]}</p><p>Автономия: ${S.autonomy} · Уступки давлению: ${S.vulnerability} · Доверие Никиты: ${S.nik}</p><button id="analyze">Разбор истории →</button>`);$('#analyze').onclick=analysis}
-function analysis(){showOverlay('<h2>Что происходило в истории?</h2><p style="font-size:17px">Нажимай на карточки, чтобы раскрыть пояснения.</p><div id="cards"></div><button id="again">Пройти ещё раз</button>');let cards=[['Love bombing','Слишком быстрые признания и обещания исключительной близости могут создавать давление ещё до того, как люди хорошо узнали друг друга.'],['Забота или контроль?','Требования отвечать немедленно, присылать фотоотчёты и объяснять общение с одноклассниками нарушают личные границы.'],['Изоляция','Попытки очернить друзей и запретить обсуждать отношения могут лишать человека поддержки.'],['Вина и подмена ответственности','Когда спокойный отказ называют жестокостью, внимание смещается с самого нарушения границ на чувство вины.']];cards.forEach(([title,body])=>{let b=document.createElement('button');b.textContent=title+'  +';b.onclick=()=>b.textContent=title+'\n\n'+body;$('#cards').append(b)});$('#again').onclick=()=>location.reload()}
-function showOverlay(html){$('#overlay').innerHTML=html;$('#overlay').style.display='flex'}
+function analysis(){
+  showOverlay('<h2>Что происходило в истории?</h2><p style="font-size:16px;opacity:.8;margin:0">Открой карточку, чтобы узнать, какие сигналы можно было заметить.</p><div id="cards"></div><button id="again">↻ Пройти ещё раз</button>');
+  $('#overlay').classList.add('analysisView');
+  const cards=[
+    ['Слишком быстрые признания','Марк говорит об исключительной близости после всего четырёх дней знакомства. Сильные слова сами по себе не доказывают доверие: важнее, уважает ли человек твой темп и решения.'],
+    ['Забота или контроль?','Марк следит за временем ответа, требует фотографию и пытается проверить телефон. Забота оставляет пространство для выбора, а контроль требует доказательств и отчётов.'],
+    ['Попытка изоляции','Марк обесценивает Леру и ревнует к Никите. Когда кто-то пытается ограничить общение с друзьями, это повод задуматься о личных границах и поддержке.'],
+    ['Давление через чувство вины','После отказа Марк говорит, что его обидели, и требует извинений. Чувства другого человека важны, но они не отменяют права сказать «нет».']
+  ];
+  cards.forEach(([title,body])=>{
+    const b=document.createElement('button');b.type='button';b.setAttribute('aria-expanded','false');
+    const heading=document.createElement('span');heading.className='cardHeading';heading.textContent=title;
+    const hint=document.createElement('span');hint.className='cardHint';hint.textContent='Нажми, чтобы открыть  +';
+    const detail=document.createElement('span');detail.className='cardBody';detail.textContent=body;detail.hidden=true;
+    b.append(heading,hint,detail);
+    b.onclick=()=>{const open=b.getAttribute('aria-expanded')==='true';b.setAttribute('aria-expanded',String(!open));detail.hidden=open;hint.textContent=open?'Нажми, чтобы открыть  +':'Свернуть  −'};
+    $('#cards').append(b);
+  });
+  $('#again').onclick=()=>location.reload();
+}
+function showOverlay(html){$('#overlay').classList.remove('analysisView');$('#overlay').innerHTML=html;$('#overlay').style.display='flex'}
 function save(){localStorage.setItem('betweenLinesV10',JSON.stringify({state:S}));alert('Прогресс сохранён')}function load(){let v=localStorage.getItem('betweenLinesV10');if(!v){alert('Сохранений пока нет');return}Object.assign(S,JSON.parse(v).state);$('#menu').style.display='none';$('#overlay').style.display='none';$('#phoneWrap').style.display='none';$('#choices').style.display='none';locked=false;transitionBusy=false;lastChapter='';$('#sceneCurtain').classList.remove('visible');run()}
 $('#save').onclick=save;$('#load').onclick=load;$('#home').onclick=()=>{$('#menu').style.display='flex';$('#choices').style.display='none';$('#phoneWrap').style.display='none'};$('#start').onclick=()=>{$('#menu').style.display='none';Object.assign(S,{autonomy:0,vulnerability:0,nik:0,lera:0,items:[],flags:{},pos:0,chatHistory:[],chatSeen:{},phonePending:null});transitionBusy=false;lastChapter='';$('#sceneCurtain').classList.remove('visible');run()};$('#continue').onclick=load;
 </script></body></html>
